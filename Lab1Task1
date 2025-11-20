@@ -1,0 +1,40 @@
+#include <stdio.h>
+
+void printMas(int mas[], int n) {
+    printf("\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d ", mas[i]);
+    }
+}
+
+void sortByChoice(int mas[], int n) {
+    int min, indEnd;
+
+    for (int i = 0; i < n - 1; i++) {
+        indEnd = i;
+        min = mas[i];
+
+        for (int j = i; j < n; j++) {
+            if (mas[j] < min) {
+                min = mas[j];
+                indEnd = j;
+            }
+        }
+
+        // обмін
+        int tmp = mas[i];
+        mas[i] = mas[indEnd];
+        mas[indEnd] = tmp;
+
+        printMas(mas, n);
+    }
+}
+
+int main() {
+    int mas[9] = {12, 23, 67, 65, 50, 70, 80, 61, 92};
+    int n = 9;
+
+    sortByChoice(mas, n);
+
+    return 0;
+}
