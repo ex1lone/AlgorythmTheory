@@ -1,0 +1,84 @@
+#include <stdio.h>
+
+int prisv = 0, srav = 0, recur = 1;
+
+void print(int arr[], int n) {
+    for(int i = 0; i < n; i++){
+        printf("%d ", arr[i]);
+    }
+}
+
+int partition(int arr[], int low, int high){
+    int pivot = arr[low];
+    int left = low + 1;
+    int right = high;
+    prisv += 3;
+
+    printf("AT START left:%d right:%d\n", left, right);
+
+    while(1){
+
+        srav += 2;
+        while(left <= right && arr[left] <= pivot){
+            left++;
+            prisv++;
+        }
+
+        srav += 2;
+        while(right >= left && arr[right] >= pivot){
+            right--;
+            prisv++;
+        }
+
+        srav++;
+        if(right < left){
+            break;
+        } else {
+            int tmp = arr[left];
+            arr[left] = arr[right];
+            arr[right] = tmp;
+            prisv += 3;
+        }
+    }
+
+    int tmp = arr[low];
+    arr[low] = arr[right];
+    arr[right] = tmp;
+    prisv += 3;
+
+    return right;
+}
+
+void quickSort(int arr[], int low, int high, int n){
+    print(arr, n);
+    printf("\nAssignees: %d, Comparisons: %d Recursion calls:%d\n",
+           prisv, srav, recur);
+
+    srav++;
+    if(low < high){
+        recur++;
+
+        prisv++;
+        int pivotIndex = partition(arr, low, high);
+
+        quickSort(arr, low, pivotIndex - 1, n);
+        quickSort(arr, pivotIndex + 1, high, n);
+    }
+
+    return;
+}
+
+int main(){
+    int A[] = {50, 80, 19, 86, 35, 7, 60, 48, 51};
+    int n = sizeof(A)/sizeof(A[0]);
+
+    print(A, n);
+    printf("\n");
+
+    quickSort(A, 0, n - 1, n);
+
+    printf("In total\nAssignees: %d, Comparisons: %d Recursion calls:%d\n",
+           prisv, srav, recur);
+
+    return 0;
+}
