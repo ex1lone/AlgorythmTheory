@@ -1,0 +1,222 @@
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#define MAX_WORD_LEN 50
+
+int a = 0;
+int b = 0;
+int m = 13;
+
+
+double A = 0.6180339887;
+
+typedef struct Node {
+    char word[MAX_WORD_LEN];
+    struct Node *next;
+} Node;
+
+typedef struct {
+    char ch[4];
+    int val;
+} LetterEntry;
+
+LetterEntry letters[] = {
+    {"А",1},{"Б",2},{"В",3},{"Г",4},{"Ґ",5},{"Д",6},{"Е",7},{"Є",8},
+    {"Ж",9},{"З",10},{"И",11},{"І",12},{"Ї",13},{"Й",14},{"К",15},{"Л",16},
+    {"М",17},{"Н",18},{"О",19},{"П",20},{"Р",21},{"С",22},{"Т",23},{"У",24},
+    {"Ф",25},{"Х",26},{"Ц",27},{"Ч",28},{"Ш",29},{"Щ",30},{"Ь",31},
+    {"Ю",32},{"Я",33}
+};
+const int LETTERS_COUNT = 33;
+
+int getLetterValue(const char* utf8) {
+    for (int i = 0; i < LETTERS_COUNT; i++) {
+        if (strcmp(utf8, letters[i].ch) == 0) return letters[i].val;
+    }
+    return 0;
+}
+
+int nextUChar(const char* s, int* bytes) {
+    unsigned char c = (unsigned char)s[0];
+    if (c < 128) { *bytes = 1; return 1; }
+    else if ((c >> 5) == 0x6) { *bytes = 2; }
+    else if ((c >> 4) == 0xE) { *bytes = 3; }
+    else if ((c >> 3) == 0x1E) { *bytes = 4; }
+    else { *bytes = 1; }
+    return *bytes;
+}
+
+int hashDivide(const char* word) {
+    int sum = 0;
+    int i = 0, bytes = 0;
+    char buff[5];
+
+    while (word[i]) {
+        nextUChar(word + i, &bytes);
+        memcpy(buff, word + i, bytes);
+        buff[bytes] = '\0';
+
+        int val = getLetterValue(buff);
+
+        sum += val;
+        i += bytes;
+    }
+
+    if (a < 7) {
+        printf("Слово: %s\n\tСума: %d\n", word, sum);
+        a++;
+    }
+
+    return sum % m;
+}
+
+int hashMultiply(const char* word) {
+    int sum = 0;
+    int i = 0, bytes = 0;
+    char buff[5];
+
+    while (word[i]) {
+        nextUChar(word + i, &bytes);
+        memcpy(buff, word + i, bytes);
+        buff[bytes] = '\0';
+
+        int val = getLetterValue(buff);
+
+        sum += val;
+        i += bytes;
+    }
+
+    if (b < 7) {
+        printf("Слово: %s\n\tСума: %d\n", word, sum);
+        b++;
+    }
+
+    double frac = fmod(sum * A, 1.0);
+    return (int)floor(m * frac);
+}
+
+Node* createNode(const char *word) {
+    Node *newNode = (Node*)malloc(sizeof(Node));
+    if (newNode == NULL) {
+        perror("Memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
+    strncpy(newNode->word, word, MAX_WORD_LEN - 1);
+    newNode->word[MAX_WORD_LEN - 1] = '\0';
+    newNode->next = NULL;
+    return newNode;
+}
+
+void addWordToChain(Node **head, const char *word) {
+    Node *newNode = createNode(word);
+    newNode->next = *head;
+    *head = newNode;
+}
+
+void freeChain(Node *head) {
+    Node *tmp;
+    while (head != NULL) {
+        tmp = head;
+        head = head->next;
+        free(tmp);
+    }
+}
+
+Node** buildOpenHashTable(const char** words, int count, int mode) {
+    Node **hashTable = (Node**)calloc(m, sizeof(Node*));
+    if (hashTable == NULL) {
+        perror("Memory allocation failed for hash table");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int w = 0; w < count; w++) {
+        const char* word = words[w];
+        int address = (mode == 0) ? hashDivide(word) : hashMultiply(word);
+
+        addWordToChain(&hashTable[address], word);
+    }
+
+    return hashTable;
+}
+
+void displayHashTable(Node** hashTable) {
+    printf("\nТаблиця для m = %d\n", m);
+    for (int i = 0; i < m; i++) {
+        printf("Комірка:%3d    Слова: [", i);
+        Node *current = hashTable[i];
+        while (current != NULL) {
+            printf("%s%s", current->word, (current->next != NULL) ? ", " : "");
+            current = current->next;
+        }
+        printf("]\n");
+    }
+}
+
+void search(Node** table) {
+    int totalComparisons = 0;
+    int maxComp = 0;
+    char maxWord[MAX_WORD_LEN] = "";
+    int totalWords = 0;
+
+    for (int i = 0; i < m; i++) {
+        Node *current = table[i];
+        int compForWord = 0;
+
+        while (current != NULL) {
+            compForWord++;
+            totalComparisons += compForWord;
+            totalWords++;
+
+            printf("Слово: %s  Порівнянь: %d\n", current->word, compForWord);
+
+            if (compForWord > maxComp) {
+                maxComp = compForWord;
+                strcpy(maxWord, current->word);
+            }
+            current = current->next;
+        }
+    }
+
+    double average = (totalWords == 0) ? 0 : (double) totalComparisons / totalWords;
+
+    printf("Слово з найбільшою кількість порівнянь: %s (%d)\n", maxWord, maxComp);
+    printf("Середня кількість порівнянь: %.2f\n", average);
+}
+
+int main() {
+
+    system("chcp 65001");
+
+    const char* words[] = {
+        "ЧУЖУ", "БІДУ", "РУКАМИ", "РОЗВЕДУ", "А", "ДО", "СВОЄЇ", "РОЗУМУ", "НЕ","ДІЙДУ"
+    };
+    int count = sizeof(words) / sizeof(words[0]);
+
+    Node **table1 = buildOpenHashTable(words, count, 0);
+    displayHashTable(table1);
+    search(table1);
+
+    for (int i = 0; i < m; i++) {
+        freeChain(table1[i]);
+    }
+    free(table1);
+
+    printf("\n\n\n");
+
+    a = 0;
+    b = 0;
+    m = 16;
+
+    Node **table2 = buildOpenHashTable(words, count, 1);
+    displayHashTable(table2);
+    search(table2);
+
+    for (int i = 0; i < m; i++) {
+        freeChain(table2[i]);
+    }
+    free(table2);
+
+    return 0;
+}
