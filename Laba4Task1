@@ -9,7 +9,6 @@ int a = 0;
 int b = 0;
 int m = 13;
 
-
 double A = 0.6180339887;
 
 typedef struct Node {
@@ -64,7 +63,7 @@ int hashDivide(const char* word) {
         i += bytes;
     }
 
-    if (a < 7) {
+    if (a < 10) {
         printf("Слово: %s\n\tСума: %d\n", word, sum);
         a++;
     }
@@ -88,7 +87,7 @@ int hashMultiply(const char* word) {
         i += bytes;
     }
 
-    if (b < 7) {
+    if (b < 10) {
         printf("Слово: %s\n\tСума: %d\n", word, sum);
         b++;
     }
@@ -111,8 +110,18 @@ Node* createNode(const char *word) {
 
 void addWordToChain(Node **head, const char *word) {
     Node *newNode = createNode(word);
-    newNode->next = *head;
-    *head = newNode;
+
+    if (*head == NULL) {
+        *head = newNode;
+        return;
+    }
+
+    Node *current = *head;
+    while (current->next != NULL) {
+        current = current->next;
+    }
+
+    current->next = newNode;
 }
 
 void freeChain(Node *head) {
@@ -204,9 +213,7 @@ int main() {
     free(table1);
 
     printf("\n\n\n");
-
-    a = 0;
-    b = 0;
+    
     m = 16;
 
     Node **table2 = buildOpenHashTable(words, count, 1);
