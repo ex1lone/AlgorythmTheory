@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define V 8
+#define INF 999999
+
+typedef struct {
+    int u, v, w;
+} Edge;
+
+int compareEdges(const void* a, const void* b) {
+    return ((Edge*)a)->w - ((Edge*)b)->w;
+}
+
+int findSet(int parent[], int i) {
+    if (parent[i] == i) return i;
+    parent[i] = findSet(parent, parent[i]);
+    return parent[i];
+}
+
+void unionSet(int parent[], int u, int v) {
+    parent[u] = v;
+}
+
+int main() {
+
+    system("chcp 65001");
+
+    int G[V][V] = {
+        {INF,INF,6  ,7  ,INF,8  ,INF,INF},
+        {INF,INF,INF,3  ,4  ,2  ,INF,INF},
+        {6  ,INF,INF,INF,INF,3  ,INF,7  },
+        {7  ,3  ,INF,INF,9  ,INF,INF,INF},
+        {INF,4  ,INF,9  ,INF,INF,5  ,INF},
+        {8  ,2  ,3  ,INF,INF,INF,9  ,3  },
+        {INF,INF,INF,INF,5  ,9  ,INF,INF},
+        {INF,INF,7  ,INF,INF,3  ,INF,INF}
+    };
+
+    Edge edges[100];
+    int edgeCount = 0;
+
+    for (int i = 0; i < V; i++) {
+        for (int j = i + 1; j < V; j++) {
+            if (G[i][j] != INF) {
+                edges[edgeCount].u = i;
+                edges[edgeCount].v = j;
+                edges[edgeCount].w = G[i][j];
+                edgeCount++;
+            }
+        }
+    }
+
+    qsort(edges, edgeCount, sizeof(Edge), compareEdges);
+
+    int parent[V];
+    for (int i = 0; i < V; i++) parent[i] = i;
+
+    int totalWeight = 0;
+
+    printf("Ребро  Вага\n");
+
+    for (int i = 0; i < edgeCount; i++) {
+        int uRep = findSet(parent, edges[i].u);
+        int vRep = findSet(parent, edges[i].v);
+
+        if (uRep != vRep) {
+            printf("%d - %d : %d\n", edges[i].u + 1, edges[i].v + 1, edges[i].w);
+            totalWeight += edges[i].w;
+            unionSet(parent, uRep, vRep);
+        }
+    }
+
+    printf("Загальна вага: %d\n", totalWeight);
+
+    return 0;
+}
