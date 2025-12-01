@@ -1,0 +1,121 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define V 8
+#define INF 99999
+
+typedef struct {
+    int v;
+    int dist;
+} Node;
+
+void swap(Node *a, Node *b) {
+    Node t = *a; *a = *b; *b = t;
+}
+
+void heapifyUp(Node heap[], int idx) {
+    while (idx > 0) {
+        int parent = (idx - 1) / 2;
+        if (heap[parent].dist <= heap[idx].dist) break;
+        swap(&heap[parent], &heap[idx]);
+        idx = parent;
+    }
+}
+
+void heapifyDown(Node heap[], int size, int idx) {
+    while (1) {
+        int left = 2*idx + 1;
+        int right = 2*idx + 2;
+        int smallest = idx;
+
+        if (left < size && heap[left].dist < heap[smallest].dist)
+            smallest = left;
+        if (right < size && heap[right].dist < heap[smallest].dist)
+            smallest = right;
+
+        if (smallest == idx) break;
+
+        swap(&heap[idx], &heap[smallest]);
+        idx = smallest;
+    }
+}
+
+void push(Node heap[], int *size, int v, int dist) {
+    heap[*size].v = v;
+    heap[*size].dist = dist;
+    heapifyUp(heap, *size);
+    (*size)++;
+}
+
+Node pop(Node heap[], int *size) {
+    Node top = heap[0];
+    heap[0] = heap[*size - 1];
+    (*size)--;
+    heapifyDown(heap, *size, 0);
+    return top;
+}
+
+int dist[V];
+int pred[V];
+
+void printArrays() {
+    printf("дистанція:\n");
+    for (int i = 0; i < V; i++) {
+        if (dist[i] == INF) printf("\tелемент %d: INF \n", i+1);
+        else printf("\tелемент %d: %d \n",i+1, dist[i]);
+    }
+
+    printf("\nпопередник:\n");
+    for (int i = 0; i < V; i++) printf("\tелемент %d: %d\n",i+1, pred[i]+1);
+    printf("\n");
+}
+
+void dijkstra(int G[V][V], int s) {
+    Node heap[200];
+    int heapSize = 0;
+
+    for (int i = 0; i < V; i++) {
+        pred[i] = -1;
+        dist[i] = (i == s ? 0 : INF);
+        push(heap, &heapSize, i, dist[i]);
+    }
+
+    while (heapSize > 0) {
+        Node rec = pop(heap, &heapSize);
+        int u = rec.v;
+        int du = rec.dist;
+
+        if (du != dist[u]) continue;
+
+        for (int i = 0; i < V; i++) {
+            if (G[u][i] == INF) continue;
+
+            if (dist[i] > dist[u] + G[u][i]) {
+                dist[i] = dist[u] + G[u][i];
+                pred[i] = u;
+                push(heap, &heapSize, i, dist[i]);
+            }
+        }
+        printArrays();
+    }
+}
+
+int main() {
+
+    system("chcp 65001");
+
+
+    int G[V][V] = {
+        {INF,INF,6  ,7  ,INF,8  ,INF,INF},
+       {INF,INF,INF,3  ,4  ,2  ,INF,INF},
+       {6  ,INF,INF,INF,INF,3  ,INF,7  },
+       {7  ,3  ,INF,INF,9  ,INF,INF,INF},
+       {INF,4  ,INF,9  ,INF,INF,5  ,INF},
+       {8  ,2  ,3  ,INF,INF,INF,9  ,3  },
+       {INF,INF,INF,INF,5  ,9  ,INF,INF},
+       {INF,INF,7  ,INF,INF,3  ,INF,INF}
+    };
+
+    dijkstra(G, 0);
+    return 0;
+}
