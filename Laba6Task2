@@ -1,0 +1,83 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define V 8
+#define INF 999999
+
+void printFloyd(int W[V][V]) {
+    printf("    1   2   3   4   5   6   7   8\n");
+
+    for (int i = 0; i < V; i++) {
+        printf("%d  ", i + 1);
+        for (int j = 0; j < V; j++) {
+            if (W[i][j] == INF) printf("∞  ");
+            else printf("%-4d", W[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+void floyd(int G[V][V], int W[V][V]) {
+    for (int i = 0; i < V; i++)
+        for (int j = 0; j < V; j++)
+            W[i][j] = G[i][j];
+
+    for (int k = 0; k < V; k++) {
+        printf("k = %d\n\n", k + 1);
+
+        for (int i = 0; i < V; i++) {
+            printf("i=%d j=1-8\n", i + 1);
+
+            for (int j = 0; j < V; j++) {
+
+                int old = W[i][j];
+                int left = W[i][k];
+                int right = W[k][j];
+
+                char L[10], R[10], O[10], NV[10];
+
+                if (left == INF) sprintf(L, "∞");
+                else sprintf(L, "%d", left);
+
+                if (right == INF) sprintf(R, "∞");
+                else sprintf(R, "%d", right);
+
+                if (old == INF) sprintf(O, "∞");
+                else sprintf(O, "%d", old);
+
+                int newVal = (left == INF || right == INF) ? INF : left + right;
+
+                if (newVal == INF) sprintf(NV, "∞");
+                else sprintf(NV, "%d", newVal);
+
+                printf("d%d,%d = min{%s+%s;%s}=%s\n", i + 1, j + 1, L, R, O, NV);
+
+                if (newVal < old) W[i][j] = newVal;
+            }
+        }
+
+        printFloyd(W);
+        printf("\n");
+    }
+}
+
+int main() {
+
+    system("chcp 65001");
+
+    int G[V][V] = {
+        {0,INF,6  ,7  ,INF,8  ,INF,INF},
+       {INF,0,INF,3  ,4  ,2  ,INF,INF},
+       {6  ,INF,0,INF,INF,3  ,INF,7  },
+       {7  ,3  ,INF,0,9  ,INF,INF,INF},
+       {INF,4  ,INF,9  ,0,INF,5  ,INF},
+       {8  ,2  ,3  ,INF,INF,0,9  ,3  },
+       {INF,INF,INF,INF,5  ,9  ,0,INF},
+       {INF,INF,7  ,INF,INF,3  ,INF,0}
+    };
+
+    int W[V][V];
+    floyd(G, W);
+
+    return 0;
+}
